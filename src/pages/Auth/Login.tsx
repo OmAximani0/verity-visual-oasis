@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowRight, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -52,11 +53,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 p-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-md shadow-lg border-0">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center text-indigo-900">Welcome back</CardTitle>
-          <CardDescription className="text-center text-indigo-600">
+          <CardTitle className="text-2xl font-bold text-center text-indigo-900 dark:text-indigo-100">Welcome back</CardTitle>
+          <CardDescription className="text-center text-indigo-600 dark:text-indigo-300">
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>

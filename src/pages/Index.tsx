@@ -1,7 +1,7 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, FileText, Image, ShieldCheck } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   return (
@@ -15,6 +15,7 @@ const Index = () => {
           <span className="font-bold text-xl">SecureAI</span>
         </div>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <Link to="/login">
             <Button variant="ghost">Log in</Button>
           </Link>
