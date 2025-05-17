@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Mail, Lock, User } from "lucide-react";
 import { toast } from "sonner";
+import axios from "axios";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -36,7 +37,12 @@ const SignUp = () => {
     
     try {
       // TO-DO: Connect to backend for user registration
-      // const response = await registerUser(formData);
+      const registerUser = async (formData: object) => {
+        const response = await axios.post("http://192.168.102.122:8000/signup", formData);
+        return response;
+      }
+
+      const response = await registerUser(formData);
       
       console.log("User registration data:", formData);
       

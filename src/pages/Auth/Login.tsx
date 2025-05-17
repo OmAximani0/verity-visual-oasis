@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
+import axios from "axios";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,7 +28,12 @@ const Login = () => {
     
     try {
       // TO-DO: Connect to backend for user authentication
-      // const response = await loginUser(formData);
+      const loginUser = async (formData: object) => {
+        const response = await axios.post("http://192.168.102.122:8000/signin", formData);
+        return response;
+      }
+
+      const response = await loginUser(formData);
       
       console.log("Login attempt with:", formData);
       
