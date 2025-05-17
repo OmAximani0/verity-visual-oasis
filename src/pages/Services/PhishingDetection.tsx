@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ShieldCheck, ExternalLink, AlertTriangle, CheckCircle, Network } from "lucide-react";
 import { toast } from "sonner";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 
 const PhishingDetection = () => {
   const [url, setUrl] = useState("");
@@ -288,14 +288,21 @@ const PhishingDetection = () => {
                           <Bar 
                             dataKey="score" 
                             name="Risk Score" 
-                            fill={(entry) => 
-                              entry.status === "phishing" 
-                                ? "#ef4444" 
-                                : entry.status === "suspicious" 
-                                ? "#f59e0b" 
-                                : "#10b981"
-                            } 
-                          />
+                            fill="#766be9"
+                          >
+                            {result.connectionData.map((entry, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={
+                                  entry.status === "phishing" 
+                                    ? "#ef4444" 
+                                    : entry.status === "suspicious" 
+                                      ? "#f59e0b" 
+                                      : "#10b981"
+                                } 
+                              />
+                            ))}
+                          </Bar>
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
