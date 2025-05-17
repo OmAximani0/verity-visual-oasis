@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ShieldCheck, ExternalLink, AlertTriangle, CheckCircle, Network } from "lucide-react";
 import { toast } from "sonner";
+import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 
 const PhishingDetection = () => {
+   const[imageURL, setImageURL] = useState<string | null>(null);  
   const [url, setUrl] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<{
@@ -53,85 +55,32 @@ const PhishingDetection = () => {
     setResult(null);
 
     try {
-      // TO-DO: Connect to backend for URL analysis
-      // const response = await analyzeUrlAPI({ url });
-      
-      // Mock response
-      setTimeout(() => {
-        // Generate random data for the mock result
-        const phishingSites = Math.floor(Math.random() * 5);
-        const legitimateSites = Math.floor(Math.random() * 7) + 1;
-        const totalSites = phishingSites + legitimateSites;
-        const isPhishing = phishingSites > 0;
-        const score = phishingSites > 0 ? Math.floor(Math.random() * 50) + 50 : Math.floor(Math.random() * 30);
-        
-        // Generate random connected sites
-        const connectionData = Array.from({ length: totalSites }, (_, i) => {
-          const isPhish = i < phishingSites;
-          return {
-            id: i,
-            url: `example${i}.com${isPhish ? '/login' : ''}`,
-            status: isPhish ? "phishing" : Math.random() > 0.7 ? "suspicious" : "legitimate",
-            score: isPhish ? Math.floor(Math.random() * 30) + 70 : Math.floor(Math.random() * 40),
-          } as const;
-        });
+  const response = await axios.post(
+    'http://192.168.150.126:8080/predict',
+    { url },
+    { responseType: 'blob' } // 👈 critical for binary/image data
+  );
 
-        // Generate chart data
-        const chartData = [
-          {
-            name: "SSL Certificate",
-            value: Math.floor(Math.random() * 100),
-            description: "Validity of the SSL certificate"
-          },
-          {
-            name: "Domain Age",
-            value: Math.floor(Math.random() * 100),
-            description: "Age of the domain registration"
-          },
-          {
-            name: "URL Structure",
-            value: Math.floor(Math.random() * 100),
-            description: "Analysis of URL components"
-          },
-          {
-            name: "Content Analysis",
-            value: Math.floor(Math.random() * 100),
-            description: "Analysis of website content"
-          },
-          {
-            name: "Reputation",
-            value: Math.floor(Math.random() * 100),
-            description: "Website reputation score"
-          },
-        ];
+  // Convert blob to object URL
+  const blob = response.data;
+  const imageObjectURL = URL.createObjectURL(blob);
+  console.log(imageObjectURL);
+  // Set this in state and use in an <img>
+  setImageURL(imageObjectURL);
+   setAnalyzing(false);
 
-        const mockResult = {
-          isPhishing,
-          score,
-          connectedSites: totalSites,
-          phishingSites,
-          legitimateSites,
-          details: isPhishing
-            ? "The analyzed website shows characteristics commonly associated with phishing attempts. It connects to multiple suspicious domains and requests sensitive information."
-            : "The analyzed website appears to be legitimate based on our security checks.",
-          connectionData,
-          chartData,
-        };
-
-        setResult(mockResult);
-        setAnalyzing(false);
-      }, 2500);
-    } catch (error) {
-      console.error("Error analyzing URL:", error);
-      toast.error("Failed to analyze the URL");
-      setAnalyzing(false);
-    }
+} catch (error) {
+  console.error("Error analyzing URL:", error);
+  toast.error("Failed to analyze the URL");
+  setAnalyzing(false);
+}
   };
 
   return (
     <div className="container py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Phishing Website Detection</h1>
+        
         <p className="text-muted-foreground">
           Check if a website is attempting to steal information or impersonate a legitimate site.
         </p>
@@ -210,7 +159,7 @@ const PhishingDetection = () => {
             <CardHeader>
               <CardTitle>Detection Results</CardTitle>
               <CardDescription>
-                {result ? "Analysis of website and its connections" : "Results will appear here after analysis"}
+                <img src={imageURL} alt="" />
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -360,6 +309,7 @@ const PhishingDetection = () => {
                   <p className="text-muted-foreground text-sm max-w-md">
                     Enter a website URL and click analyze to check for phishing attempts and view connection graphs.
                   </p>
+                   
                 </div>
               )}
             </CardContent>

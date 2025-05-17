@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-
+import axios from "axios";
 interface Message {
   id: number;
   role: "user" | "assistant";
@@ -19,12 +19,7 @@ interface Message {
 const DocumentAnalysis = () => {
   const [file, setFile] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
-  const [result, setResult] = useState<{
-    summary: string;
-    keyPoints: string[];
-    recommendations: string[];
-    riskAreas: string[];
-  } | null>(null);
+  const [result, setResult] = useState("");
   
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, role: "assistant", content: "Hello! I can answer questions about the analyzed document. How can I help you?" },
@@ -57,88 +52,78 @@ const DocumentAnalysis = () => {
       // const formData = new FormData();
       // formData.append('document', file);
       // const response = await analyzeDocumentAPI(formData);
-      
-      // Mock response
-      setTimeout(() => {
-        const mockResult = {
-          summary: "This legal document outlines terms and conditions for a software service agreement between the provider and client. It covers usage rights, privacy policies, termination conditions, and liability limitations. The agreement is governed by state law and includes provisions for dispute resolution through arbitration.",
-          keyPoints: [
-            "The agreement establishes a non-exclusive, non-transferable license to use the software.",
-            "Users must be at least 18 years old to accept the terms.",
-            "The service provider reserves the right to modify the terms with 30 days notice.",
-            "Termination can occur with 14 days written notice from either party.",
-            "Data privacy is governed by the accompanying Privacy Policy document."
-          ],
-          recommendations: [
-            "Review the liability limitations as they significantly limit potential compensation.",
-            "Note the automatic renewal clause that requires 30-day cancellation notice.",
-            "Consider the jurisdiction limitations for any potential disputes.",
-            "Be aware of the data usage terms that allow anonymized data collection."
-          ],
-          riskAreas: [
-            "Broad indemnification requirements for the client",
-            "Limited warranty coverage",
-            "Mandatory arbitration clause restricts legal options",
-            "Unilateral amendment provisions favor the provider"
-          ]
-        };
+ 
+    const formData = new FormData();
+    formData.append('file', file); 
 
-        setResult(mockResult);
+    const response = await axios.post(
+      'http://192.168.150.126:8080/upload',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+        console.log(response.data);
+        setResult(response.data.summary);
+
+
+    
+       
+       
         setAnalyzing(false);
-      }, 3000);
+      
     } catch (error) {
       console.error("Error analyzing document:", error);
       toast.error("Failed to analyze the document");
       setAnalyzing(false);
     }
   };
+const handleAskQuestion = async () => {
+  if (!question.trim()) return;
 
-  const handleAskQuestion = async () => {
-    if (!question.trim()) return;
-    
-    const userMessage: Message = {
-      id: messages.length + 1,
-      role: "user",
-      content: question
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setIsAskingQuestion(true);
-    setQuestion("");
-    
-    try {
-      // TO-DO: Connect to backend for Q&A functionality
-      // const response = await askQuestionAPI({ question, document: documentId });
-      
-      // Mock response
-      setTimeout(() => {
-        let response = "";
-        
-        if (question.toLowerCase().includes("termination")) {
-          response = "The agreement allows termination with 14 days written notice from either party. However, the client must pay any outstanding fees upon termination. The service provider can terminate immediately if the client breaches any terms.";
-        } else if (question.toLowerCase().includes("liability") || question.toLowerCase().includes("damages")) {
-          response = "The agreement limits liability to the amount paid by the client in the 12 months preceding the claim. It explicitly excludes indirect, incidental, and consequential damages. Neither party will be liable for force majeure events.";
-        } else if (question.toLowerCase().includes("privacy") || question.toLowerCase().includes("data")) {
-          response = "Data privacy is governed by the Privacy Policy document. The service provider collects user data for service improvement and may share anonymized data with third parties. Users can request their data under applicable privacy laws.";
-        } else {
-          response = "Based on the analyzed document, this appears to be related to the terms and conditions of the software service agreement. The specific clause might not be directly addressed in the summary, but generally, the agreement covers usage rights, limitations, and obligations between the provider and client.";
-        }
-        
-        const assistantMessage: Message = {
-          id: messages.length + 2,
-          role: "assistant",
-          content: response
-        };
-        
-        setMessages(prev => [...prev, assistantMessage]);
-        setIsAskingQuestion(false);
-      }, 1500);
-    } catch (error) {
-      console.error("Error asking question:", error);
-      toast.error("Failed to get an answer");
-      setIsAskingQuestion(false);
-    }
+  const userMessage: Message = {
+    id: messages.length + 1,
+    role: "user",
+    content: question
   };
+
+  setMessages(prev => [...prev, userMessage]);
+  setIsAskingQuestion(true);
+  setQuestion("");
+
+  try {
+    // ✅ Create FormData and append the question
+    const formData = new FormData();
+    formData.append("question", question);
+
+    const response = await axios.post(
+      'http://192.168.150.126:8080/question',
+      formData,
+      {
+        headers: {
+          // Let Axios set the correct Content-Type with boundary
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    );
+
+    const assistantMessage: Message = {
+      id: messages.length + 2,
+      role: "assistant",
+      content: response.data.answer || "I couldn't find an answer to that question."
+    };
+
+    setMessages(prev => [...prev, assistantMessage]);
+    setIsAskingQuestion(false);
+  } catch (error) {
+    console.error("Error asking question:", error);
+    toast.error("Failed to get an answer");
+    setIsAskingQuestion(false);
+  }
+};
+
 
   return (
     <div className="container py-10">
@@ -233,115 +218,12 @@ const DocumentAnalysis = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm mb-6">{result.summary}</p>
+                <p className="text-sm mb-6">{result}</p>
 
-                <Collapsible className="mb-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium">Key Points</h3>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="sm" className="p-0 h-8 w-8">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="h-4 w-4"
-                        >
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
-                        <span className="sr-only">Toggle</span>
-                      </Button>
-                    </CollapsibleTrigger>
-                  </div>
-                  <Separator className="my-2" />
-                  <CollapsibleContent>
-                    <ul className="space-y-1 mt-2">
-                      {result.keyPoints.map((point, index) => (
-                        <li key={index} className="text-sm flex">
-                          <span className="mr-2">•</span>
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CollapsibleContent>
-                </Collapsible>
+    
 
-                <Collapsible className="mb-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium">Recommendations</h3>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="sm" className="p-0 h-8 w-8">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="h-4 w-4"
-                        >
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
-                        <span className="sr-only">Toggle</span>
-                      </Button>
-                    </CollapsibleTrigger>
-                  </div>
-                  <Separator className="my-2" />
-                  <CollapsibleContent>
-                    <ul className="space-y-1 mt-2">
-                      {result.recommendations.map((recommendation, index) => (
-                        <li key={index} className="text-sm flex">
-                          <span className="mr-2">•</span>
-                          <span>{recommendation}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CollapsibleContent>
-                </Collapsible>
+        
 
-                <Collapsible>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium">Risk Areas</h3>
-                    <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="sm" className="p-0 h-8 w-8">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="h-4 w-4"
-                        >
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
-                        <span className="sr-only">Toggle</span>
-                      </Button>
-                    </CollapsibleTrigger>
-                  </div>
-                  <Separator className="my-2" />
-                  <CollapsibleContent>
-                    <ul className="space-y-1 mt-2">
-                      {result.riskAreas.map((risk, index) => (
-                        <li key={index} className="text-sm flex">
-                          <span className="mr-2">•</span>
-                          <span>{risk}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CollapsibleContent>
-                </Collapsible>
               </CardContent>
             </Card>
           )}

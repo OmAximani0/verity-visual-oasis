@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import MainLayout from "./components/Layout/MainLayout";
+import  Profile from "./pages/Profile";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/signup" element={<SignUp />} />
             
             <Route element={<MainLayout />}>
+            <Route path='/profile' element={<Profile />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/fake-detection" element={<FakeDetection />} />
               <Route path="/phishing-detection" element={<PhishingDetection />} />

@@ -97,7 +97,7 @@ const FakeDetection = () => {
     } catch (error) {
       console.error("Error analyzing text:", error);
       toast.error("Failed to analyze the text");
-      setAnalyzing(false);
+      setAnalyzing(false); 
     }
   };
 
